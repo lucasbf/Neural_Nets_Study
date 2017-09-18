@@ -13,7 +13,7 @@ def perceptron(W,I):
 def error(true_y,y):
     return true_y - y
 
-def learn(W,Xi,t,o,eta=0.1):
+def learn(W,Xi,t,o,eta=0.02):
     X_i = np.append(Xi, [1])
     e = error(t,o)
     h_error.append(e)
@@ -23,11 +23,11 @@ def learn(W,Xi,t,o,eta=0.1):
 
 def train(W,X,Y):
     ep_err = 0
-    for Xi, Yi in zip(X,Y):
+    for i, Xi in enumerate(X):
         o = perceptron(W,Xi)
-        W, err = learn(W,Xi,Yi,o)
+        W, err = learn(W,Xi,Y[i],o)
     ep_err += abs(err)
-    return W, ep_err.astype(float) / len(X)
+    return W, ep_err / len(X)
 
 def evaluate_train(W,X,Y,epochs=200):
     for ep in range(0,epochs):
@@ -46,7 +46,7 @@ data = np.array([[1,0,1],[0,0,-1],[0,1,1],[1,1,-1]])
 all_X = data[:,0:2]
 all_Y = data[:,2]
 
-Weights = evaluate_train(Weights,all_X,all_Y,epochs=25)
+Weights = evaluate_train(Weights,all_X,all_Y,epochs=50)
 evaluate(Weights,all_X)
 
 fig, (axis1, axis2, axis3) = plt.subplots(1,3)
