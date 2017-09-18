@@ -4,7 +4,7 @@ import matplotlib as mplt
 import math
 
 # config MLP: multiplayer perceptron
-def createMLP(topology = (2,3,1),activation = 'tan', eta = 0.01, alpha = 0.1):
+def createMLP(topology = (2,3,1),activation = 'tanh', eta = 0.05, alpha = 0.1):
     tp = topology
     return {'weights':
                 [np.random.random((tp[i]+1,tp[i+1])) for i in range(len(tp)-1)],
@@ -91,14 +91,58 @@ def learn(mlp,X,Y):
         weight += delta_w + mlp['alpha']*w_n_1
 
 def train(mlp,Xs,Ys,epochs=100):
+    err_ep = np.zeros(epochs)
     for ep in range(epochs):
+        err = 0.0
         for X,Y in zip(Xs,Ys):
             evaluate(mlp,X)
             learn(mlp,X,Y)
+            err += abs(mlp['delta'][-1])
+        err_ep[ep] = err / X.shape[0]
+        if ep % 1000 == 0:
+            print "Epoch: ", ep
+    return err_ep
 
-mlp = createMLP((2,2,1),alpha=0,activation='tanh')
 X = np.array([[1,0],[0,1],[0,0],[1,1]])
 Y = np.array([1,1,0,0])
 
-train(mlp,X,Y,epochs=10000)
-print zip(X, Y, evaluate_set(mlp,X))
+epochs = 3000
+experiment = 'simple'
+if experiment == 'simple':
+    fig, axis = plt.subplots(1,1)
+    fig.tight_layout()
+    mlp = createMLP((2, 2, 1), alpha=0.0, activation='tanh')
+    error_training = train(mlp, X, Y, epochs=epochs)
+    print error_training
+    print zip(X, Y, evaluate_set(mlp, X))
+    axis.plot(np.array(error_training))
+    axis.set_xlabel("Epoch")
+    axis.set_ylabel("Error")
+elif experiment == 'simpleN':
+    fig, axis = plt.subplots(1,1)
+    fig.tight_layout()
+    for i in range(5):
+        mlp = createMLP((2, 2, 1), alpha=0.0, activation='tanh')
+        error_training = train(mlp, X, Y, epochs=epochs)
+        print error_training
+        print zip(X, Y, evaluate_set(mlp, X))
+        axis.plot(np.array(error_training))
+        axis.set_xlabel("Epoch")
+        axis.set_ylabel("Error")
+elif experiment == 'eta':
+    etas = [0.01,0.025,0.05,0.075,0.1,0.2,0.4,0.8,1.0,1.5,2.0,3.0]
+    d = len(etas)/4
+    fig, axis = plt.subplots(4,d)
+    fig.tight_layout()
+    for j, eta in enumerate(etas):
+        for i in range(5):
+            mlp = createMLP((2,2,1),alpha=0.0,activation='tanh',eta=eta)
+            error_training = train(mlp,X,Y,epochs=epochs)
+            print error_training
+            print zip(X, Y, evaluate_set(mlp,X))
+            axis[j/d,j%d].plot(np.array(error_training))
+            axis[j/d,j%d].set_xlabel("Epoch")
+            axis[j/d,j%d].set_ylabel("Error")
+            axis[j/d,j%d].set_title("Eta: "+str(eta))
+
+plt.show()
